@@ -2,10 +2,10 @@ const express = require('express');
 const bodyParser = require("body-parser");
 
 const app = express();
-
+const cors = require('cors');
 //Here we are configuring express to use body-parser as middle-ware.
 app.use(bodyParser.json());
-
+app.use(cors());
 //initialize
 app.use('/api', require('./routes/api'));
 

@@ -24,6 +24,8 @@ router.post('/login', (req, res) => {
         password: req.body.password
     };
 
+    console.log(auth, 'auth data');
+
     const odoo = new odoo_xmlrpc(auth);
     odoo.connect((err, result) => {
         if(err) {
@@ -45,34 +47,40 @@ router.post('/login', (req, res) => {
 
 });
 
+
 router.post('/call_method/:modelname/:method', verifyToken, (req, res)=> {
 
     const modelname = req.params.modelname;
     const method = req.params.method;
-    const list = JSON.parse(req.body.paramList);
+    const list = req.body.paramlist;
     const resultList = Object.values(list.paramlist);
     
+    console.log(resultList, 'lists');
     jwt.verify(req.token, secret_key, (err, authData) => {
         
         if(err) {
             res.sendStatus(403);
         } else {
+            delete authData.auth.id;
 
-            const odoo = new odoo_xmlrpc(authData);
+
+            console.log(resultList, 'port sended');
+            const odoo = new odoo_xmlrpc(authData.auth);
 
             odoo.connect((err, response) => {
-                if(err) return console.log('error', err);
-            });
-
-            odoo.execute_kw(modelname, method, [resultList], function (err, value) {
-                if (err) { return res.send(err); }
-                res.json({
-                    authData,
-                    value: value
+                if(err) return console.log('error conn', err);
+              
+                odoo.execute_kw(modelname, method, [resultList], function (err, value) {
+                    if (err) { return res.send(err); }
+                    res.json({
+                        authData,
+                        value: value
+                    });
+                
                 });
-            
             });
         }
+
     });
 });
 
